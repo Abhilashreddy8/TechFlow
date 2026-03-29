@@ -31,6 +31,13 @@ ALLOWED_HOSTS = config(
 # In production Render will add its domain here via environment variable
 # .split(',') converts "host1,host2" string → ['host1', 'host2'] list
 
+# Add this below ALLOWED_HOSTS
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}" 
+    for host in ALLOWED_HOSTS 
+    if host not in ['localhost', '127.0.0.1']
+]
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
