@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,    # handles login — returns access + refresh token
     TokenRefreshView,       # handles token refresh — returns new access token
 )
-from .views import RegisterView, ProfileView
+from .views import RegisterView, ProfileView, LogoutView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -18,4 +18,5 @@ urlpatterns = [
 
     path('profile/', ProfileView.as_view(), name='profile'),
     # GET /api/auth/profile/ → ProfileView (protected)
+    path('logout/', LogoutView.as_view(), name='logout'),  # ← add this
 ]

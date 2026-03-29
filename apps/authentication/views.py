@@ -16,6 +16,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .serializers import RegisterSerializer, UserProfileSerializer
 
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 class RegisterView(APIView):
     # This handles POST /api/auth/register/
@@ -72,3 +74,45 @@ class ProfileView(APIView):
             serializer.data,        # converts User object → JSON
             status=status.HTTP_200_OK
         )
+
+
+# Add this new view at the bottom of views.py
+class LogoutView(APIView):
+    """
+    Logout by blacklisting the refresh token.
+    After this the refresh token cannot be used to get new access tokens.
+    User is effectively logged out even though JWT is stateless.
+    """
+    permission_classes = [IsAuthenticated]
+    # Only logged-in users can logout — makes sense!
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+            # Client must send their refresh token in request body
+            # We need it to blacklist it
+
+            if not refresh_token:
+                return Response({
+                    "success": False,
+                    "errors": {"detail": "Refresh token is required"}
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            token = RefreshToken(refresh_token)
+            # Create a RefreshToken object from the string
+
+            token.blacklist()
+            # Add this token to the blacklist table in PostgreSQL
+            # Now this token can NEVER be used again — even if not expired
+
+            return Response({
+                "success": True,
+                "message": "Logged out successfully"
+            }, status=status.HTTP_200_OK)
+
+        except TokenError:
+            # TokenError happens if token is already blacklisted or invalid
+            return Response({
+                "success": False,
+                "errors": {"detail": "Token is invalid or already blacklisted"}
+            }, status=status.HTTP_400_BAD_REQUEST)

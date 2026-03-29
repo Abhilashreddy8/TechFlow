@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # Third party
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', 
     'corsheaders',
 
     # Our apps
@@ -138,3 +139,52 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Tell Django to use our custom user model instead of default
 AUTH_USER_MODEL = 'authentication.User'
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    # access token expires in 60 minutes
+    # after 60 mins user must use refresh token to get new one
+
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # refresh token lasts 7 days
+    # after 7 days user must login again
+
+    'ROTATE_REFRESH_TOKENS': True,
+    # every time user refreshes — they get a NEW refresh token
+    # old refresh token is blacklisted automatically
+    # extra security layer
+
+    'BLACKLIST_AFTER_ROTATION': True,
+    # old tokens go to blacklist after rotation
+    # prevents token reuse attacks
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    # Authorization: Bearer <token>
+    # this is the industry standard header format
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'EXCEPTION_HANDLER': 'apps.authentication.exceptions.custom_exception_handler',
+
+    # THROTTLING — rate limiting
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        # AnonRateThrottle = limits unauthenticated users (register/login)
+        'rest_framework.throttling.UserRateThrottle',
+        # UserRateThrottle = limits authenticated users (profile/logout)
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '20/minute',
+        # Anonymous users can only call API 20 times per minute
+        # Prevents brute force attacks on login endpoint
+
+        'user': '100/minute',
+        # Logged in users get 100 requests per minute
+        # More than enough for normal use
+    }
+}
