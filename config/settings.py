@@ -135,3 +135,6 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Tell Django to use our custom user model instead of default
+AUTH_USER_MODEL = 'authentication.User'
