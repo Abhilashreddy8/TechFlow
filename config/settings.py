@@ -24,19 +24,22 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-ALLOWED_HOSTS = config(
-    'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1'
-).split(',')
-# In production Render will add its domain here via environment variable
-# .split(',') converts "host1,host2" string → ['host1', 'host2'] list
+# Replace your current ALLOWED_HOSTS with this
+import os
 
-# Add this below ALLOWED_HOSTS
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS', 
+    'localhost,127.0.0.1'
+).split(',')
+
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{host}" 
-    for host in ALLOWED_HOSTS 
-    if host not in ['localhost', '127.0.0.1']
+    'https://techflow-b52m.onrender.com',
+    'http://localhost:8000',
 ]
+
+# Add this line — forces Django to use the correct host header
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 INSTALLED_APPS = [
@@ -55,6 +58,7 @@ INSTALLED_APPS = [
 
     # Our apps
     'apps.authentication',
+    'apps.blog',
 ]
 
 MIDDLEWARE = [
